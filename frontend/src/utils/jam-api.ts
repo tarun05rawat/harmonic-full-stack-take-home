@@ -1,4 +1,5 @@
 import axios from "axios";
+import { buildApiUrl } from "../config/api";
 
 export interface ICompany {
   id: number;
@@ -17,14 +18,12 @@ export interface ICompanyBatchResponse {
   companies: ICompany[];
 }
 
-const BASE_URL = "http://localhost:8000";
-
 export async function getCompanies(
   offset?: number,
   limit?: number
 ): Promise<ICompanyBatchResponse> {
   try {
-    const response = await axios.get(`${BASE_URL}/companies`, {
+    const response = await axios.get(buildApiUrl("/companies"), {
       params: {
         offset,
         limit,
@@ -43,7 +42,7 @@ export async function getCollectionsById(
   limit?: number
 ): Promise<ICollection> {
   try {
-    const response = await axios.get(`${BASE_URL}/collections/${id}`, {
+    const response = await axios.get(buildApiUrl(`/collections/${id}`), {
       params: {
         offset,
         limit,
@@ -58,7 +57,7 @@ export async function getCollectionsById(
 
 export async function getCollectionsMetadata(): Promise<ICollection[]> {
   try {
-    const response = await axios.get(`${BASE_URL}/collections`);
+    const response = await axios.get(buildApiUrl("/collections"));
     return response.data;
   } catch (error) {
     console.error("Error fetching companies:", error);
@@ -72,7 +71,7 @@ export async function createCollection(collectionName: string): Promise<{
   message: string;
 }> {
   try {
-    const response = await axios.post(`${BASE_URL}/collections`, {
+    const response = await axios.post(buildApiUrl("/collections"), {
       collection_name: collectionName,
     });
     return response.data;
@@ -92,7 +91,7 @@ export async function removeCompaniesFromCollection(
 }> {
   try {
     const response = await axios.delete(
-      `${BASE_URL}/collections/${collectionId}/companies`,
+      buildApiUrl(`/collections/${collectionId}/companies`),
       {
         data: {
           company_ids: companyIds,
@@ -113,7 +112,7 @@ export async function deleteCollection(collectionId: string): Promise<{
 }> {
   try {
     const response = await axios.delete(
-      `${BASE_URL}/collections/${collectionId}`
+      buildApiUrl(`/collections/${collectionId}`)
     );
     return response.data;
   } catch (error) {

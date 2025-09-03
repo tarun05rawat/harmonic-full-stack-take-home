@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000";
+import { buildApiUrl } from "../config/api";
 
 export interface TransferRequest {
   source_list_id: string;
@@ -27,7 +27,7 @@ export interface JobStatus {
 export async function startTransfer(
   request: TransferRequest
 ): Promise<TransferResponse> {
-  const response = await fetch(`${BASE_URL}/transfer`, {
+  const response = await fetch(buildApiUrl("/transfer"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -43,7 +43,7 @@ export async function startTransfer(
 }
 
 export async function getJobStatus(jobId: string): Promise<JobStatus> {
-  const response = await fetch(`${BASE_URL}/transfer/jobs/${jobId}`);
+  const response = await fetch(buildApiUrl(`/transfer/jobs/${jobId}`));
 
   if (!response.ok) {
     throw new Error(`Failed to get job status: ${await response.text()}`);

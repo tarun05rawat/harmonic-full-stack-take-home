@@ -1,9 +1,11 @@
+import { buildApiUrl } from "../config/api";
+
 export async function toggleFavorite(
   favoritesListId: string,
   companyId: number,
   liked: boolean
 ) {
-  const res = await fetch("http://localhost:8000/favorites/toggle", {
+  const res = await fetch(buildApiUrl("/favorites/toggle"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
