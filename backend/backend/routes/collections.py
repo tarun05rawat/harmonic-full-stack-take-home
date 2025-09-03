@@ -47,6 +47,12 @@ class RemoveCompaniesResponse(BaseModel):
     message: str
 
 
+class DeleteCollectionResponse(BaseModel):
+    id: uuid.UUID
+    collection_name: str
+    message: str
+
+
 @router.get("", response_model=list[CompanyCollectionMetadata])
 def get_all_collection_metadata(
     db: Session = Depends(database.get_db),
@@ -161,4 +167,37 @@ def remove_companies_from_collection(
         collection_id=collection_id,
         removed_count=removed_count,
         message=f"Removed {removed_count} companies from '{collection.collection_name}'"
+    )
+
+
+@router.delete("/{collection_id}", response_model=DeleteCollectionResponse)
+def delete_collection(
+    collection_id: uuid.UUID,
+    db: Session = Depends(database.get_db),
+):
+    # Verify collection exists
+    collection = db.query(database.CompanyCollection).get(collection_id)
+    if not collection:
+        raise HTTPException(404, f"Collection with id {collection_id} not found")
+    
+    # Check if this is a system collection (like favorites)
+    # You might want to protect certain collections from deletion
+    if collection.collection_name.lower() in ["liked companies", "favorites"]:
+        raise HTTPException(400, f"Cannot delete system collection '{collection.collection_name}'")
+    
+    collection_name = collection.collection_name
+    
+    # Delete all associations first
+    db.query(database.CompanyCollectionAssociation).filter(
+        database.CompanyCollectionAssociation.collection_id == collection_id
+    ).delete()
+    
+    # Delete the collection
+    db.delete(collection)
+    db.commit()
+    
+    return DeleteCollectionResponse(
+        id=collection_id,
+        collection_name=collection_name,
+        message=f"Collection '{collection_name}' deleted successfully"
     )

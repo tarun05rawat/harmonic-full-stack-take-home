@@ -105,3 +105,19 @@ export async function removeCompaniesFromCollection(
     throw error;
   }
 }
+
+export async function deleteCollection(collectionId: string): Promise<{
+  id: string;
+  collection_name: string;
+  message: string;
+}> {
+  try {
+    const response = await axios.delete(
+      `${BASE_URL}/collections/${collectionId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting collection:", error);
+    throw error;
+  }
+}

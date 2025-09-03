@@ -26,10 +26,15 @@ import {
   History,
   Notifications,
   Menu as MenuIcon,
+  Delete,
 } from "@mui/icons-material";
 import CompanyTable from "./components/CompanyTable";
 import CreateCollectionDialog from "./components/CreateCollectionDialog";
-import { getCollectionsMetadata, createCollection } from "./utils/jam-api";
+import {
+  getCollectionsMetadata,
+  createCollection,
+  deleteCollection,
+} from "./utils/jam-api";
 import useApi from "./utils/useApi";
 
 const darkTheme = createTheme({
@@ -145,6 +150,63 @@ function App() {
       setNotifications((prev) => [notification, ...prev.slice(0, 9)]);
       setSnackbarOpen(true);
       throw error; // Re-throw so dialog can handle it
+    }
+  };
+
+  const handleDeleteCollection = async (
+    collectionId: string,
+    collectionName: string
+  ) => {
+    if (
+      !confirm(
+        `Are you sure you want to delete "${collectionName}"? This action cannot be undone and will remove all companies from this collection.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const result = await deleteCollection(collectionId);
+
+      // If we're deleting the currently selected collection, switch to the first available one
+      if (
+        selectedCollectionId === collectionId &&
+        collectionResponse &&
+        collectionResponse.length > 1
+      ) {
+        const nextCollection = collectionResponse.find(
+          (c) => c.id !== collectionId
+        );
+        if (nextCollection) {
+          setSelectedCollectionId(nextCollection.id);
+        }
+      }
+
+      // Trigger refresh to update collections list
+      setRefreshTrigger((prev) => prev + 1);
+
+      // Add success notification
+      const notification = {
+        id: Date.now().toString(),
+        message: result.message,
+        type: "success" as const,
+        timestamp: new Date(),
+      };
+      setNotifications((prev) => [notification, ...prev.slice(0, 9)]);
+      setSnackbarOpen(true);
+    } catch (error) {
+      // Add error notification
+      const notification = {
+        id: Date.now().toString(),
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete collection",
+        type: "error" as const,
+        timestamp: new Date(),
+      };
+      setNotifications((prev) => [notification, ...prev.slice(0, 9)]);
+      setSnackbarOpen(true);
     }
   };
 
@@ -276,15 +338,11 @@ function App() {
           {collectionResponse?.map((collection) => (
             <ListItem
               key={collection.id}
-              button
               selected={selectedCollectionId === collection.id}
-              onClick={() => {
-                setSelectedCollectionId(collection.id);
-                setSidebarOpen(false);
-              }}
               sx={{
                 borderRadius: 1,
                 mb: 0.5,
+                px: 0,
                 "&.Mui-selected": {
                   backgroundColor: "primary.main",
                   "&:hover": {
@@ -293,19 +351,60 @@ function App() {
                 },
               }}
             >
-              <ListItemIcon>
-                <CollectionIcon collectionName={collection.collection_name} />
-              </ListItemIcon>
-              <ListItemText
-                primary={collection.collection_name}
-                secondary={
-                  <Chip
-                    label={`${collection.total || 0} companies`}
-                    size="small"
-                    variant="outlined"
-                  />
-                }
-              />
+              {/* Main clickable area */}
+              <Box
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  px: 2,
+                  py: 1,
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor:
+                      selectedCollectionId === collection.id
+                        ? "transparent"
+                        : "rgba(255, 255, 255, 0.08)",
+                  },
+                }}
+                onClick={() => {
+                  setSelectedCollectionId(collection.id);
+                  setSidebarOpen(false);
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <CollectionIcon collectionName={collection.collection_name} />
+                </ListItemIcon>
+                <ListItemText
+                  primary={collection.collection_name}
+                  secondary={
+                    <Chip
+                      label={`${collection.total || 0} companies`}
+                      size="small"
+                      variant="outlined"
+                    />
+                  }
+                />
+              </Box>
+
+              {/* Delete button */}
+              {collection.collection_name.toLowerCase() !==
+                "liked companies" && (
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteCollection(
+                      collection.id,
+                      collection.collection_name
+                    );
+                  }}
+                  sx={{ mr: 1 }}
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+              )}
             </ListItem>
           ))}
         </List>
