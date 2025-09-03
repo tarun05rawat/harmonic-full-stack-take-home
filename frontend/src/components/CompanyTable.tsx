@@ -22,8 +22,14 @@ import {
   Pause,
   CheckCircle,
   Error as ErrorIcon,
+  Delete,
 } from "@mui/icons-material";
-import { getCollectionsById, ICompany, ICollection } from "../utils/jam-api";
+import {
+  getCollectionsById,
+  ICompany,
+  ICollection,
+  removeCompaniesFromCollection,
+} from "../utils/jam-api";
 import { toggleFavorite } from "../utils/favorites-api";
 import { startTransfer, getJobStatus, JobStatus } from "../utils/transfer-api";
 import TransferDialog from "./TransferDialog";
@@ -34,12 +40,14 @@ interface CompanyTableProps {
   selectedCollectionId: string;
   collections: ICollection[];
   onTransferComplete?: (message?: string) => void;
+  onDataChange?: () => void;
 }
 
 const CompanyTable = ({
   selectedCollectionId,
   collections,
   onTransferComplete,
+  onDataChange,
 }: CompanyTableProps) => {
   const [response, setResponse] = useState<ICompany[]>([]);
   const [total, setTotal] = useState<number>(0);
@@ -268,6 +276,42 @@ const CompanyTable = ({
     }
   };
 
+  const handleRemoveSelected = async () => {
+    if (selected.size === 0) return;
+
+    try {
+      const companyIds = Array.from(selected);
+      await removeCompaniesFromCollection(selectedCollectionId, companyIds);
+
+      // Clear selection
+      setSelected(new Set());
+
+      // Trigger refresh of both table data and parent collections
+      if (onDataChange) {
+        onDataChange();
+      }
+
+      // Show success notification
+      if (onTransferComplete) {
+        const companyNames = companyIds.map((id) => {
+          const company = response.find((c: ICompany) => c.id === id);
+          return company?.company_name || `Company ${id}`;
+        });
+
+        if (companyNames.length === 1) {
+          onTransferComplete(`${companyNames[0]} removed successfully`);
+        } else {
+          onTransferComplete(
+            `${companyNames.length} companies removed successfully`
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Remove failed:", error);
+      // Could add error notification here
+    }
+  };
+
   const currentCollection = collections.find(
     (c) => c.id === selectedCollectionId
   );
@@ -371,6 +415,15 @@ const CompanyTable = ({
                   }}
                 >
                   Transfer Selected ({selected.size})
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="error"
+                  startIcon={<Delete />}
+                  onClick={handleRemoveSelected}
+                >
+                  Remove Selected ({selected.size})
                 </Button>
                 <Button
                   size="small"

@@ -37,6 +37,16 @@ class CreateCollectionResponse(BaseModel):
     message: str
 
 
+class RemoveCompaniesRequest(BaseModel):
+    company_ids: list[int]
+
+
+class RemoveCompaniesResponse(BaseModel):
+    collection_id: uuid.UUID
+    removed_count: int
+    message: str
+
+
 @router.get("", response_model=list[CompanyCollectionMetadata])
 def get_all_collection_metadata(
     db: Session = Depends(database.get_db),
@@ -118,4 +128,37 @@ def get_company_collection_by_id(
         .collection_name,
         companies=companies,
         total=total_count,
+    )
+
+
+@router.delete("/{collection_id}/companies", response_model=RemoveCompaniesResponse)
+def remove_companies_from_collection(
+    collection_id: uuid.UUID,
+    request: RemoveCompaniesRequest,
+    db: Session = Depends(database.get_db),
+):
+    # Verify collection exists
+    collection = db.query(database.CompanyCollection).get(collection_id)
+    if not collection:
+        raise HTTPException(404, f"Collection with id {collection_id} not found")
+    
+    # Remove companies from collection
+    removed_count = 0
+    for company_id in request.company_ids:
+        result = (
+            db.query(database.CompanyCollectionAssociation)
+            .filter(
+                database.CompanyCollectionAssociation.collection_id == collection_id,
+                database.CompanyCollectionAssociation.company_id == company_id
+            )
+            .delete()
+        )
+        removed_count += result
+    
+    db.commit()
+    
+    return RemoveCompaniesResponse(
+        collection_id=collection_id,
+        removed_count=removed_count,
+        message=f"Removed {removed_count} companies from '{collection.collection_name}'"
     )

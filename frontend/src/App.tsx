@@ -225,6 +225,7 @@ function App() {
               selectedCollectionId={selectedCollectionId}
               collections={collectionResponse}
               onTransferComplete={handleTransferComplete}
+              onDataChange={() => setRefreshTrigger((prev) => prev + 1)}
             />
           ) : (
             <Alert severity="info">Select a collection to view companies</Alert>
