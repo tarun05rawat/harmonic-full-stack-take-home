@@ -55,12 +55,9 @@ const CompanyTable = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(50); // Companies per page
+  const [pageSize] = useState(50);
 
-  // Transfer state
   const [activeJobs, setActiveJobs] = useState<Map<string, JobStatus>>(
     new Map()
   );
@@ -74,7 +71,6 @@ const CompanyTable = ({
     }>
   >([]);
 
-  // Filtered companies based on search
   const filteredCompanies = useMemo(() => {
     if (!searchTerm) return response;
     return response.filter((company) =>
@@ -82,12 +78,10 @@ const CompanyTable = ({
     );
   }, [response, searchTerm]);
 
-  // Pagination calculations
   const totalPages = Math.ceil(total / pageSize);
   const startIndex = (currentPage - 1) * pageSize + 1;
   const endIndex = Math.min(currentPage * pageSize, total);
 
-  // Event handlers
   const handleSelectAll = useCallback(() => {
     const visibleIds = new Set(filteredCompanies.map((c) => c.id));
     setSelected(visibleIds);
@@ -97,7 +91,6 @@ const CompanyTable = ({
     setSelected(new Set());
   }, []);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
@@ -114,9 +107,7 @@ const CompanyTable = ({
       }
       if (e.key === " " && e.target === document.body) {
         e.preventDefault();
-        // Toggle selection on focused row
       }
-      // Pagination shortcuts
       if (e.key === "ArrowLeft" && e.altKey && currentPage > 1) {
         e.preventDefault();
         setCurrentPage(currentPage - 1);
@@ -131,7 +122,6 @@ const CompanyTable = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleSelectAll, handleSelectNone, currentPage, totalPages]);
 
-  // Load companies with pagination
   useEffect(() => {
     setLoading(true);
     const offset = (currentPage - 1) * pageSize;
@@ -139,26 +129,23 @@ const CompanyTable = ({
       .then((newResponse) => {
         setResponse(newResponse.companies ?? []);
         setTotal(newResponse.total ?? 0);
-        setSelected(new Set()); // reset selection on data change
+        setSelected(new Set());
       })
       .finally(() => setLoading(false));
   }, [selectedCollectionId, currentPage, pageSize]);
 
-  // Reset to first page when collection changes
   useEffect(() => {
     setCurrentPage(1);
     setSelected(new Set());
     setSearchTerm("");
   }, [selectedCollectionId]);
 
-  // Reset page when search term changes
   useEffect(() => {
     if (searchTerm) {
       setCurrentPage(1);
     }
   }, [searchTerm]);
 
-  // Poll active jobs
   useEffect(() => {
     if (activeJobs.size === 0) return;
 
@@ -172,7 +159,6 @@ const CompanyTable = ({
           newJobs.set(jobId, updatedJob);
 
           if (updatedJob.status === "completed") {
-            // Add to history
             const sourceList =
               collections.find((c) => c.id === selectedCollectionId)
                 ?.collection_name || "Unknown";
@@ -180,14 +166,13 @@ const CompanyTable = ({
               {
                 id: jobId,
                 sourceList,
-                targetList: "Favorites", // Could be dynamic
+                targetList: "Favorites",
                 count: updatedJob.inserted_count,
                 timestamp: new Date(),
               },
               ...prev.slice(0, 9),
-            ]); // Keep last 10
+            ]);
 
-            // Trigger collection metadata refresh AND show notification
             const message =
               updatedJob.skipped_count > 0
                 ? `${updatedJob.inserted_count} companies transferred, ${updatedJob.skipped_count} duplicates skipped`
@@ -195,7 +180,6 @@ const CompanyTable = ({
 
             onTransferComplete?.(message);
 
-            // Also trigger data refresh for the current table
             if (onDataChange) {
               onDataChange();
             }
@@ -223,7 +207,6 @@ const CompanyTable = ({
     );
     try {
       await toggleFavorite(FAVORITES_LIST_ID, companyId, liked);
-      // Trigger refresh of collections metadata to update counts
       const action = liked ? "added to" : "removed from";
       onTransferComplete?.(
         `${
@@ -298,15 +281,12 @@ const CompanyTable = ({
       const companyIds = Array.from(selected);
       await removeCompaniesFromCollection(selectedCollectionId, companyIds);
 
-      // Clear selection
       setSelected(new Set());
 
-      // Trigger refresh of both table data and parent collections
       if (onDataChange) {
         onDataChange();
       }
 
-      // Show success notification AND trigger collection metadata refresh
       if (onTransferComplete) {
         const companyNames = companyIds.map((id) => {
           const company = response.find((c: ICompany) => c.id === id);
@@ -323,7 +303,6 @@ const CompanyTable = ({
       }
     } catch (error) {
       console.error("Remove failed:", error);
-      // Could add error notification here
     }
   };
 

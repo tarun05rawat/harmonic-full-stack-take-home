@@ -29,7 +29,6 @@ const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset state when dialog opens
   React.useEffect(() => {
     if (open) {
       setCollectionName("");

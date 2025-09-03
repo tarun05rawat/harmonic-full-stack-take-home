@@ -39,7 +39,7 @@ const darkTheme = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      main: "#f97316", // Orange color from your current design
+      main: "#f97316",
     },
     secondary: {
       main: "#3b82f6",
@@ -88,7 +88,6 @@ function App() {
     }
   }, [selectedCollectionId]);
 
-  // Handle URL parameters on load
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const collectionFromUrl = urlParams.get("collection");
@@ -101,10 +100,8 @@ function App() {
   }, [collectionResponse]);
 
   const handleTransferComplete = (customMessage?: string) => {
-    // Trigger a refresh of collections metadata to update counts
     setRefreshTrigger((prev) => prev + 1);
 
-    // Add success notification
     const notification = {
       id: Date.now().toString(),
       message: customMessage || "Companies transferred successfully!",
@@ -123,10 +120,8 @@ function App() {
     try {
       const result = await createCollection(collectionName);
 
-      // Trigger refresh to show new collection
       setRefreshTrigger((prev) => prev + 1);
 
-      // Add success notification
       const notification = {
         id: Date.now().toString(),
         message: `Collection "${collectionName}" created successfully!`,
@@ -136,10 +131,8 @@ function App() {
       setNotifications((prev) => [notification, ...prev.slice(0, 9)]);
       setSnackbarOpen(true);
 
-      // Optionally select the new collection
       setSelectedCollectionId(result.id);
     } catch (error) {
-      // Add error notification
       const notification = {
         id: Date.now().toString(),
         message:
@@ -151,7 +144,7 @@ function App() {
       };
       setNotifications((prev) => [notification, ...prev.slice(0, 9)]);
       setSnackbarOpen(true);
-      throw error; // Re-throw so dialog can handle it
+      throw error;
     }
   };
 
@@ -170,7 +163,6 @@ function App() {
     try {
       const result = await deleteCollection(collectionId);
 
-      // If we're deleting the currently selected collection, switch to the first available one
       if (
         selectedCollectionId === collectionId &&
         collectionResponse &&
@@ -184,10 +176,8 @@ function App() {
         }
       }
 
-      // Trigger refresh to update collections list
       setRefreshTrigger((prev) => prev + 1);
 
-      // Add success notification
       const notification = {
         id: Date.now().toString(),
         message: result.message,
@@ -197,7 +187,6 @@ function App() {
       setNotifications((prev) => [notification, ...prev.slice(0, 9)]);
       setSnackbarOpen(true);
     } catch (error) {
-      // Add error notification
       const notification = {
         id: Date.now().toString(),
         message:
@@ -211,8 +200,6 @@ function App() {
       setSnackbarOpen(true);
     }
   };
-
-  // Find current collection (removed unused variable)
 
   const CollectionIcon = ({ collectionName }: { collectionName: string }) => {
     if (

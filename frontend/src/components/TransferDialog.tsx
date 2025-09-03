@@ -43,7 +43,6 @@ const TransferDialog: React.FC<TransferDialogProps> = ({
   const [targetListId, setTargetListId] = useState("");
   const [transferMode, setTransferMode] = useState<"selected" | "all">("all");
 
-  // Reset state when dialog opens
   React.useEffect(() => {
     if (open) {
       setSourceListId(defaultSourceId || "");
