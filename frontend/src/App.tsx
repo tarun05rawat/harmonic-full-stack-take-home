@@ -94,14 +94,14 @@ function App() {
     }
   }, [collectionResponse]);
 
-  const handleTransferComplete = () => {
+  const handleTransferComplete = (customMessage?: string) => {
     // Trigger a refresh of collections metadata to update counts
     setRefreshTrigger((prev) => prev + 1);
 
     // Add success notification
     const notification = {
       id: Date.now().toString(),
-      message: "Companies transferred successfully!",
+      message: customMessage || "Companies transferred successfully!",
       type: "success" as const,
       timestamp: new Date(),
     };

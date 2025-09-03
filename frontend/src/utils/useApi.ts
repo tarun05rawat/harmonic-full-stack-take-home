@@ -1,24 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, DependencyList } from "react";
 
+const useApi = <T>(
+  apiFunction: () => Promise<T>,
+  deps: DependencyList = []
+) => {
+  const [data, setData] = useState<T>();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    apiFunction()
+      .then((response) => {
+        setData(response);
+      })
+      .catch((error) => {
+        setError(error.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
 
-const useApi = <T>(apiFunction: () => Promise<T>) => {
-    const [data, setData] = useState<T>();
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        setLoading(true);
-        apiFunction().then((response) => {
-            setData(response);
-        }).catch((error) => {
-            setError(error.message);
-        }).finally(() => {
-            setLoading(false);
-        });
-    }, []);
-
-    return { data, loading, error };
+  return { data, loading, error };
 };
 
 export default useApi;

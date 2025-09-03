@@ -33,7 +33,7 @@ const FAVORITES_LIST_ID = "8234603c-c6e6-40cb-882c-c3d1e9c4ade8";
 interface CompanyTableProps {
   selectedCollectionId: string;
   collections: ICollection[];
-  onTransferComplete?: () => void;
+  onTransferComplete?: (message?: string) => void;
 }
 
 const CompanyTable = ({
@@ -179,7 +179,9 @@ const CompanyTable = ({
               ...prev.slice(0, 9),
             ]); // Keep last 10
 
-            onTransferComplete?.();
+            onTransferComplete?.(
+              `${updatedJob.inserted_count} companies transferred successfully`
+            );
           }
         } catch (error) {
           console.error("Failed to poll job status:", error);
@@ -192,11 +194,19 @@ const CompanyTable = ({
   }, [activeJobs, collections, selectedCollectionId, onTransferComplete]);
 
   const handleFavoriteToggle = async (companyId: number, liked: boolean) => {
+    const company = response.find((c) => c.id === companyId);
     setResponse((prev) =>
       prev.map((c) => (c.id === companyId ? { ...c, liked } : c))
     );
     try {
       await toggleFavorite(FAVORITES_LIST_ID, companyId, liked);
+      // Trigger refresh of collections metadata to update counts
+      const action = liked ? "added to" : "removed from";
+      onTransferComplete?.(
+        `${
+          company?.company_name || "Company"
+        } ${action} Liked Companies List successfully`
+      );
     } catch (e) {
       setResponse((prev) =>
         prev.map((c) => (c.id === companyId ? { ...c, liked: !liked } : c))
