@@ -2,7 +2,7 @@ import "./App.css";
 
 import CssBaseline from "@mui/material/CssBaseline";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Box,
   AppBar,
@@ -116,6 +116,10 @@ function App() {
     setNotifications((prev) => [notification, ...prev.slice(0, 9)]);
     setSnackbarOpen(true);
   };
+
+  const handleDataChange = useCallback(() => {
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
 
   const handleCreateCollection = async (collectionName: string) => {
     try {
@@ -287,7 +291,7 @@ function App() {
               selectedCollectionId={selectedCollectionId}
               collections={collectionResponse}
               onTransferComplete={handleTransferComplete}
-              onDataChange={() => setRefreshTrigger((prev) => prev + 1)}
+              onDataChange={handleDataChange}
             />
           ) : (
             <Alert severity="info">Select a collection to view companies</Alert>

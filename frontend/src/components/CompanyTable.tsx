@@ -187,9 +187,15 @@ const CompanyTable = ({
               ...prev.slice(0, 9),
             ]); // Keep last 10
 
+            // Trigger collection metadata refresh AND show notification
             onTransferComplete?.(
               `${updatedJob.inserted_count} companies transferred successfully`
             );
+            
+            // Also trigger data refresh for the current table
+            if (onDataChange) {
+              onDataChange();
+            }
           }
         } catch (error) {
           console.error("Failed to poll job status:", error);
@@ -199,7 +205,7 @@ const CompanyTable = ({
     }, 500);
 
     return () => clearInterval(interval);
-  }, [activeJobs, collections, selectedCollectionId, onTransferComplete]);
+  }, [activeJobs, collections, selectedCollectionId, onTransferComplete, onDataChange]);
 
   const handleFavoriteToggle = async (companyId: number, liked: boolean) => {
     const company = response.find((c) => c.id === companyId);
@@ -291,7 +297,7 @@ const CompanyTable = ({
         onDataChange();
       }
 
-      // Show success notification
+      // Show success notification AND trigger collection metadata refresh
       if (onTransferComplete) {
         const companyNames = companyIds.map((id) => {
           const company = response.find((c: ICompany) => c.id === id);
