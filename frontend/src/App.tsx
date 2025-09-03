@@ -18,6 +18,7 @@ import {
   Chip,
   Alert,
   Snackbar,
+  Button,
 } from "@mui/material";
 import {
   Folder,
@@ -27,7 +28,8 @@ import {
   Menu as MenuIcon,
 } from "@mui/icons-material";
 import CompanyTable from "./components/CompanyTable";
-import { getCollectionsMetadata, ICollection } from "./utils/jam-api";
+import CreateCollectionDialog from "./components/CreateCollectionDialog";
+import { getCollectionsMetadata, createCollection } from "./utils/jam-api";
 import useApi from "./utils/useApi";
 
 const darkTheme = createTheme({
@@ -64,6 +66,7 @@ function App() {
   >([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
 
   const { data: collectionResponse, loading } = useApi(
     () => getCollectionsMetadata(),
@@ -109,9 +112,43 @@ function App() {
     setSnackbarOpen(true);
   };
 
-  const currentCollection = collectionResponse?.find(
-    (c) => c.id === selectedCollectionId
-  );
+  const handleCreateCollection = async (collectionName: string) => {
+    try {
+      const result = await createCollection(collectionName);
+
+      // Trigger refresh to show new collection
+      setRefreshTrigger((prev) => prev + 1);
+
+      // Add success notification
+      const notification = {
+        id: Date.now().toString(),
+        message: `Collection "${collectionName}" created successfully!`,
+        type: "success" as const,
+        timestamp: new Date(),
+      };
+      setNotifications((prev) => [notification, ...prev.slice(0, 9)]);
+      setSnackbarOpen(true);
+
+      // Optionally select the new collection
+      setSelectedCollectionId(result.id);
+    } catch (error) {
+      // Add error notification
+      const notification = {
+        id: Date.now().toString(),
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to create collection",
+        type: "error" as const,
+        timestamp: new Date(),
+      };
+      setNotifications((prev) => [notification, ...prev.slice(0, 9)]);
+      setSnackbarOpen(true);
+      throw error; // Re-throw so dialog can handle it
+    }
+  };
+
+  // Find current collection (removed unused variable)
 
   const CollectionIcon = ({ collectionName }: { collectionName: string }) => {
     if (
@@ -206,15 +243,33 @@ function App() {
           {notifications[0]?.message}
         </Alert>
       </Snackbar>
+
+      {/* Create Collection Dialog */}
+      <CreateCollectionDialog
+        open={createCollectionOpen}
+        onClose={() => setCreateCollectionOpen(false)}
+        onSuccess={handleCreateCollection}
+        existingNames={collectionResponse?.map((c) => c.collection_name) || []}
+      />
     </ThemeProvider>
   );
 
   function CollectionSidebar() {
     return (
       <Box sx={{ p: 2 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
-          Collections
-        </Typography>
+        <div className="flex items-center justify-between mb-2">
+          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+            Collections
+          </Typography>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => setCreateCollectionOpen(true)}
+            sx={{ minWidth: "auto", px: 1 }}
+          >
+            +
+          </Button>
+        </div>
 
         <List>
           {collectionResponse?.map((collection) => (

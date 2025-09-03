@@ -227,13 +227,15 @@ const CompanyTable = ({
     });
   };
 
-  const handleBulkTransfer = async (mode: "selected" | "all") => {
-    const targetListId = FAVORITES_LIST_ID; // Could be made dynamic
-
+  const handleTransfer = async (
+    sourceId: string,
+    targetId: string,
+    mode: "selected" | "all"
+  ) => {
     try {
       const result = await startTransfer({
-        source_list_id: selectedCollectionId,
-        target_list_id: targetListId,
+        source_list_id: sourceId,
+        target_list_id: targetId,
         selection:
           mode === "selected"
             ? { mode: "ids", ids: Array.from(selected) }
@@ -259,6 +261,8 @@ const CompanyTable = ({
       if (mode === "selected") {
         setSelected(new Set());
       }
+
+      setTransferDialogOpen(false);
     } catch (error) {
       console.error("Transfer failed:", error);
     }
@@ -362,7 +366,9 @@ const CompanyTable = ({
                   size="small"
                   variant="outlined"
                   startIcon={<SwapHoriz />}
-                  onClick={() => handleBulkTransfer("selected")}
+                  onClick={() => {
+                    setTransferDialogOpen(true);
+                  }}
                 >
                   Transfer Selected ({selected.size})
                 </Button>
@@ -381,7 +387,9 @@ const CompanyTable = ({
               size="small"
               variant="outlined"
               startIcon={<SwapHoriz />}
-              onClick={() => handleBulkTransfer("all")}
+              onClick={() => {
+                setTransferDialogOpen(true);
+              }}
             >
               Transfer All ({total})
             </Button>
@@ -563,10 +571,8 @@ const CompanyTable = ({
         onClose={() => setTransferDialogOpen(false)}
         collections={collections}
         selectedCount={selected.size}
-        onTransfer={(_sourceId, _targetId, mode) => {
-          // For now, we're using the current collection as source
-          // In the future, this could be made more flexible
-          handleBulkTransfer(mode);
+        onTransfer={(sourceId, targetId, mode) => {
+          handleTransfer(sourceId, targetId, mode);
         }}
         defaultSourceId={selectedCollectionId}
       />

@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -27,6 +27,16 @@ class CompanyCollectionOutput(CompanyBatchOutput, CompanyCollectionMetadata):
     pass
 
 
+class CreateCollectionRequest(BaseModel):
+    collection_name: str
+
+
+class CreateCollectionResponse(BaseModel):
+    id: uuid.UUID
+    collection_name: str
+    message: str
+
+
 @router.get("", response_model=list[CompanyCollectionMetadata])
 def get_all_collection_metadata(
     db: Session = Depends(database.get_db),
@@ -49,6 +59,36 @@ def get_all_collection_metadata(
         ))
     
     return result
+
+
+@router.post("", response_model=CreateCollectionResponse)
+def create_collection(
+    request: CreateCollectionRequest,
+    db: Session = Depends(database.get_db),
+):
+    # Check if collection name already exists
+    existing_collection = (
+        db.query(database.CompanyCollection)
+        .filter(database.CompanyCollection.collection_name == request.collection_name)
+        .first()
+    )
+    
+    if existing_collection:
+        raise HTTPException(400, f"Collection '{request.collection_name}' already exists")
+    
+    # Create new collection
+    new_collection = database.CompanyCollection(
+        collection_name=request.collection_name
+    )
+    db.add(new_collection)
+    db.commit()
+    db.refresh(new_collection)
+    
+    return CreateCollectionResponse(
+        id=new_collection.id,
+        collection_name=new_collection.collection_name,
+        message=f"Collection '{request.collection_name}' created successfully"
+    )
 
 
 @router.get("/{collection_id}", response_model=CompanyCollectionOutput)
