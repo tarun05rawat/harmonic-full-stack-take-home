@@ -191,7 +191,7 @@ const CompanyTable = ({
             onTransferComplete?.(
               `${updatedJob.inserted_count} companies transferred successfully`
             );
-            
+
             // Also trigger data refresh for the current table
             if (onDataChange) {
               onDataChange();
@@ -205,7 +205,13 @@ const CompanyTable = ({
     }, 500);
 
     return () => clearInterval(interval);
-  }, [activeJobs, collections, selectedCollectionId, onTransferComplete, onDataChange]);
+  }, [
+    activeJobs,
+    collections,
+    selectedCollectionId,
+    onTransferComplete,
+    onDataChange,
+  ]);
 
   const handleFavoriteToggle = async (companyId: number, liked: boolean) => {
     const company = response.find((c) => c.id === companyId);
