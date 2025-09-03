@@ -188,10 +188,11 @@ const CompanyTable = ({
             ]); // Keep last 10
 
             // Trigger collection metadata refresh AND show notification
-            const message = updatedJob.skipped_count > 0 
-              ? `${updatedJob.inserted_count} companies transferred, ${updatedJob.skipped_count} duplicates skipped`
-              : `${updatedJob.inserted_count} companies transferred successfully`;
-            
+            const message =
+              updatedJob.skipped_count > 0
+                ? `${updatedJob.inserted_count} companies transferred, ${updatedJob.skipped_count} duplicates skipped`
+                : `${updatedJob.inserted_count} companies transferred successfully`;
+
             onTransferComplete?.(message);
 
             // Also trigger data refresh for the current table

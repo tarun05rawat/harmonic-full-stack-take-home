@@ -8,7 +8,6 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  Badge,
   IconButton,
   Drawer,
   List,
@@ -24,7 +23,6 @@ import {
   Folder,
   FolderSpecial,
   History,
-  Notifications,
   Menu as MenuIcon,
   Delete,
 } from "@mui/icons-material";
@@ -245,12 +243,6 @@ function App() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             <span className="font-bold">Harmonic</span> Collection Manager
           </Typography>
-
-          <Badge badgeContent={notifications.length} color="primary">
-            <IconButton color="inherit">
-              <Notifications />
-            </IconButton>
-          </Badge>
         </Toolbar>
       </AppBar>
 
