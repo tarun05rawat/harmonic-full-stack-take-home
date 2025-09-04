@@ -33,7 +33,6 @@ import {
   createCollection,
   deleteCollection,
 } from "./utils/jam-api";
-import useApi from "./utils/useApi";
 
 const darkTheme = createTheme({
   palette: {
@@ -71,10 +70,25 @@ function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
 
-  const { data: collectionResponse, loading } = useApi(
-    () => getCollectionsMetadata(),
-    [refreshTrigger]
-  );
+  const [collectionResponse, setCollectionResponse] = useState<ICollection[]>();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const data = await getCollectionsMetadata();
+        console.log("Setting collection data:", data);
+        setCollectionResponse(data);
+      } catch (error) {
+        console.error("Failed to fetch:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [refreshTrigger]);
 
   useEffect(() => {
     if (collectionResponse && !selectedCollectionId) {
@@ -210,6 +224,12 @@ function App() {
     }
     return <Folder />;
   };
+
+  console.log("App render:", {
+    selectedCollectionId,
+    collectionResponse,
+    loading,
+  });
 
   return (
     <ThemeProvider theme={darkTheme}>

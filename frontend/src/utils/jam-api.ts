@@ -57,10 +57,13 @@ export async function getCollectionsById(
 
 export async function getCollectionsMetadata(): Promise<ICollection[]> {
   try {
-    const response = await axios.get(buildApiUrl("/collections"));
+    const url = buildApiUrl("/collections");
+    console.log("API URL being used:", url);
+    const response = await axios.get(url);
+    console.log("Response received:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error fetching companies:", error);
+    console.error("Error fetching collections metadata:", error);
     throw error;
   }
 }

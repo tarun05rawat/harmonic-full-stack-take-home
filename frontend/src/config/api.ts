@@ -29,10 +29,6 @@ export const API_CONFIG = {
 } as const;
 
 export const buildApiUrl = (endpoint: string): string => {
-  if (!endpoint || typeof endpoint !== "string") {
-    throw new Error("Endpoint must be a non-empty string");
-  }
-
   const normalizedEndpoint = endpoint.startsWith("/")
     ? endpoint
     : `/${endpoint}`;

@@ -16,16 +16,19 @@ const useApi = <T>(
   }, []);
 
   useEffect(() => {
+    console.log("useApi: Starting API call", deps);
     setLoading(true);
     setError(null);
 
     apiFunction()
       .then((response) => {
+        console.log("useApi: Got response", response);
         if (isMounted.current) {
           setData(response);
         }
       })
       .catch((error) => {
+        console.log("useApi: Got error", error);
         if (isMounted.current) {
           setError(
             error instanceof Error ? error.message : "An error occurred"

@@ -22,10 +22,27 @@ async def lifespan(app: FastAPI):
         db.commit()
         db.close()
     yield
-    # Clean up...
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.include_router(companies.router)
+app.include_router(collections.router)
+app.include_router(transfer.router)
+app.include_router(favorites.router)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 def seed_database(db: Session):
@@ -110,18 +127,3 @@ EXECUTE FUNCTION throttle_updates();
     db.commit()
 
 
-app.include_router(companies.router)
-app.include_router(collections.router)
-app.include_router(transfer.router)
-app.include_router(favorites.router)
-
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
