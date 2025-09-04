@@ -4,7 +4,6 @@ import {
   Checkbox,
   IconButton,
   Chip,
-  LinearProgress,
   Typography,
   TextField,
   InputAdornment,
@@ -18,11 +17,10 @@ import {
   Clear,
   Search,
   SwapHoriz,
-  PlayArrow,
-  Pause,
   CheckCircle,
   Error as ErrorIcon,
   Delete,
+  AutorenewRounded,
 } from "@mui/icons-material";
 import {
   getCollectionsById,
@@ -189,7 +187,7 @@ const CompanyTable = ({
         }
       }
       setActiveJobs(newJobs);
-    }, 500);
+    }, 250); // Faster polling for more responsive updates
 
     return () => clearInterval(interval);
   }, [
@@ -248,21 +246,18 @@ const CompanyTable = ({
             : { mode: "all" },
       });
 
-      setActiveJobs(
-        (prev) =>
-          new Map(
-            prev.set(result.job_id, {
-              job_id: result.job_id,
-              status: "queued",
-              total_count: mode === "selected" ? selected.size : total,
-              processed_count: 0,
-              inserted_count: 0,
-              skipped_count: 0,
-              failed_count: 0,
-              error: undefined,
-            })
-          )
-      );
+      const newJob = {
+        job_id: result.job_id,
+        status: "queued" as const,
+        total_count: mode === "selected" ? selected.size : total,
+        processed_count: 0,
+        inserted_count: 0,
+        skipped_count: 0,
+        failed_count: 0,
+        error: undefined,
+      };
+
+      setActiveJobs((prev) => new Map(prev.set(result.job_id, newJob)));
 
       if (mode === "selected") {
         setSelected(new Set());
@@ -460,49 +455,69 @@ const CompanyTable = ({
               <CheckCircle />
             ) : job.status === "failed" ? (
               <ErrorIcon />
-            ) : job.status === "running" ? (
-              <PlayArrow />
             ) : (
-              <Pause />
+              <AutorenewRounded
+                sx={{
+                  animation: "spin 1s linear infinite",
+                  "@keyframes spin": {
+                    "0%": {
+                      transform: "rotate(0deg)",
+                    },
+                    "100%": {
+                      transform: "rotate(360deg)",
+                    },
+                  },
+                }}
+              />
             )
           }
           className="mb-2"
         >
           <div className="w-full">
-            <div className="flex justify-between items-center mb-1">
+            <div className="flex justify-between items-center">
               <Typography variant="body2" className="font-medium">
                 {job.status === "completed"
-                  ? "Transfer Complete"
+                  ? `Transfer Complete - ${job.inserted_count} companies transferred`
                   : job.status === "failed"
                   ? "Transfer Failed"
                   : job.status === "running"
-                  ? "Transferring Companies..."
-                  : "Transfer Queued"}
-              </Typography>
-              <Typography variant="caption">
-                {job.processed_count} / {job.total_count}
+                  ? "Transferring companies..."
+                  : "Transfer queued..."}
               </Typography>
             </div>
 
-            {job.status !== "completed" && job.status !== "failed" && (
-              <LinearProgress
-                variant="determinate"
-                value={(job.processed_count / job.total_count) * 100}
-                className="mb-2"
-              />
+            {job.status === "completed" && (
+              <div className="flex space-x-4 text-xs mt-2">
+                <Chip
+                  label={`Added: ${job.inserted_count}`}
+                  size="small"
+                  color="success"
+                  variant="outlined"
+                />
+                {job.skipped_count > 0 && (
+                  <Chip
+                    label={`Skipped: ${job.skipped_count}`}
+                    size="small"
+                    color="warning"
+                    variant="outlined"
+                  />
+                )}
+                {job.failed_count > 0 && (
+                  <Chip
+                    label={`Failed: ${job.failed_count}`}
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                  />
+                )}
+              </div>
             )}
-
-            <div className="flex space-x-4 text-xs text-gray-600">
-              <span>Added: {job.inserted_count}</span>
-              <span>Skipped: {job.skipped_count}</span>
-              {job.failed_count > 0 && <span>Failed: {job.failed_count}</span>}
-            </div>
 
             {job.error && (
               <Typography
                 variant="caption"
                 color="error"
-                className="mt-1 block"
+                className="mt-2 block p-2 bg-red-900/20 rounded"
               >
                 Error: {job.error}
               </Typography>
@@ -536,7 +551,26 @@ const CompanyTable = ({
 
       {/* Company Table */}
       <div className="overflow-x-auto border rounded-lg">
-        {loading && <LinearProgress />}
+        {loading && (
+          <div className="p-4 bg-gray-800 flex items-center justify-center space-x-3">
+            <AutorenewRounded
+              sx={{
+                animation: "spin 1s linear infinite",
+                "@keyframes spin": {
+                  "0%": {
+                    transform: "rotate(0deg)",
+                  },
+                  "100%": {
+                    transform: "rotate(360deg)",
+                  },
+                },
+              }}
+            />
+            <Typography variant="body2" className="text-gray-300">
+              Loading companies...
+            </Typography>
+          </div>
+        )}
 
         <table className="min-w-full text-sm text-left">
           <thead className="bg-gray-800 text-gray-200 uppercase">
