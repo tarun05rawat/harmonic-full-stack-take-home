@@ -25,9 +25,14 @@ export const API_CONFIG = {
   BASE_URL: getBaseUrl(),
   ENVIRONMENT: import.meta.env.MODE || "development",
   IS_DEVELOPMENT: import.meta.env.DEV === true,
+  TIMEOUT: 10000, // 10 seconds
 } as const;
 
 export const buildApiUrl = (endpoint: string): string => {
+  if (!endpoint || typeof endpoint !== "string") {
+    throw new Error("Endpoint must be a non-empty string");
+  }
+
   const normalizedEndpoint = endpoint.startsWith("/")
     ? endpoint
     : `/${endpoint}`;
