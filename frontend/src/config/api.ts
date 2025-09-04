@@ -1,11 +1,35 @@
-// API Configuration
+// API Configuration and utilities
+const isValidUrl = (url: string): boolean => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const getBaseUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  const fallbackUrl = "http://localhost:8000";
+
+  const baseUrl = envUrl || fallbackUrl;
+
+  if (!isValidUrl(baseUrl)) {
+    throw new Error(`Invalid API base URL: ${baseUrl}`);
+  }
+
+  return baseUrl;
+};
+
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000",
+  BASE_URL: getBaseUrl(),
+  ENVIRONMENT: import.meta.env.MODE || "development",
+  IS_DEVELOPMENT: import.meta.env.DEV === true,
 } as const;
 
-// Helper function to build API URLs
 export const buildApiUrl = (endpoint: string): string => {
-  return `${API_CONFIG.BASE_URL}${
-    endpoint.startsWith("/") ? endpoint : `/${endpoint}`
-  }`;
+  const normalizedEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
+  return `${API_CONFIG.BASE_URL}${normalizedEndpoint}`;
 };
