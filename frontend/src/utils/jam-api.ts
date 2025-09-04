@@ -1,6 +1,7 @@
 import axios from "axios";
 import { buildApiUrl } from "../config/api";
 
+// Core data interfaces
 export interface ICompany {
   id: number;
   company_name: string;
@@ -55,6 +56,7 @@ export async function getCollectionsById(
   }
 }
 
+// Get collections metadata (id, name, count only)
 export async function getCollectionsMetadata(): Promise<ICollection[]> {
   try {
     const url = buildApiUrl("/collections");

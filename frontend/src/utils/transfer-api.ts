@@ -1,5 +1,6 @@
 import { buildApiUrl } from "../config/api";
 
+// Transfer system interfaces
 export interface TransferRequest {
   source_list_id: string;
   target_list_id: string;
@@ -13,6 +14,7 @@ export interface TransferResponse {
   job_id: string;
 }
 
+// Job status tracking for async transfers
 export interface JobStatus {
   job_id: string;
   status: "queued" | "running" | "completed" | "failed";

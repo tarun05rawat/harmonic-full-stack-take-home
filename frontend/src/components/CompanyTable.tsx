@@ -59,6 +59,7 @@ const CompanyTable = ({
   const [activeJobs, setActiveJobs] = useState<Map<string, JobStatus>>(
     new Map()
   );
+  // Local transfer history for quick access in UI
   const [transferHistory, setTransferHistory] = useState<
     Array<{
       id: string;
@@ -89,6 +90,7 @@ const CompanyTable = ({
     setSelected(new Set());
   }, []);
 
+  // Keyboard shortcuts for better UX
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
@@ -144,6 +146,7 @@ const CompanyTable = ({
     }
   }, [searchTerm]);
 
+  // Poll active jobs for real-time progress updates
   useEffect(() => {
     if (activeJobs.size === 0) return;
 
@@ -200,9 +203,12 @@ const CompanyTable = ({
 
   const handleFavoriteToggle = async (companyId: number, liked: boolean) => {
     const company = response.find((c) => c.id === companyId);
+
+    // Optimistic update for better UX
     setResponse((prev) =>
       prev.map((c) => (c.id === companyId ? { ...c, liked } : c))
     );
+
     try {
       await toggleFavorite(FAVORITES_LIST_ID, companyId, liked);
       const action = liked ? "added to" : "removed from";
@@ -212,6 +218,7 @@ const CompanyTable = ({
         } ${action} Liked Companies List successfully`
       );
     } catch (e) {
+      // Revert on error
       setResponse((prev) =>
         prev.map((c) => (c.id === companyId ? { ...c, liked: !liked } : c))
       );

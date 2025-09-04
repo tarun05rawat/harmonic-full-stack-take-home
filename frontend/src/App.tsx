@@ -32,6 +32,7 @@ import {
   getCollectionsMetadata,
   createCollection,
   deleteCollection,
+  ICollection,
 } from "./utils/jam-api";
 
 const darkTheme = createTheme({
@@ -67,6 +68,8 @@ function App() {
     }>
   >([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  // Trigger to refetch collections data when changes occur
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
 
@@ -90,18 +93,21 @@ function App() {
     fetchData();
   }, [refreshTrigger]);
 
+  // Auto-select first collection when data loads
   useEffect(() => {
     if (collectionResponse && !selectedCollectionId) {
       setSelectedCollectionId(collectionResponse[0]?.id);
     }
   }, [collectionResponse, selectedCollectionId]);
 
+  // Update URL to maintain collection state on refresh
   useEffect(() => {
     if (selectedCollectionId) {
       window.history.pushState({}, "", `?collection=${selectedCollectionId}`);
     }
   }, [selectedCollectionId]);
 
+  // Restore collection from URL on page load
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const collectionFromUrl = urlParams.get("collection");
@@ -114,6 +120,7 @@ function App() {
   }, [collectionResponse]);
 
   const handleTransferComplete = (customMessage?: string) => {
+    // Refresh collections to update counts
     setRefreshTrigger((prev) => prev + 1);
 
     const notification = {
@@ -166,6 +173,7 @@ function App() {
     collectionId: string,
     collectionName: string
   ) => {
+    // Confirm deletion with user
     if (
       !confirm(
         `Are you sure you want to delete "${collectionName}"? This action cannot be undone and will remove all companies from this collection.`
@@ -177,6 +185,7 @@ function App() {
     try {
       const result = await deleteCollection(collectionId);
 
+      // Switch to another collection if current one is deleted
       if (
         selectedCollectionId === collectionId &&
         collectionResponse &&
@@ -215,6 +224,7 @@ function App() {
     }
   };
 
+  // Icon selection based on collection type
   const CollectionIcon = ({ collectionName }: { collectionName: string }) => {
     if (
       collectionName.toLowerCase().includes("liked") ||
